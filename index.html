@@ -8,28 +8,73 @@
   </head>
   <body>
     <main class="app">
-      <h1>图片转像素画</h1>
-      <p class="subtitle">上传图片并调节像素块大小，实时生成像素画效果。</p>
+      <header class="app-header">
+        <h1>图片转像素画</h1>
+        <p class="subtitle">像素块保持正方形，颜色映射到 Mard 标准色卡（221 色）。</p>
+      </header>
 
-      <section class="controls">
-        <label class="control-group">
-          <span>选择图片</span>
-          <input id="imageInput" type="file" accept="image/*" />
-        </label>
+      <div class="layout">
+        <aside class="sidebar">
+          <section class="panel">
+            <h2>图片与导出</h2>
+            <label class="control-group">
+              <span>选择图片</span>
+              <input id="imageInput" type="file" accept="image/*" />
+            </label>
+            <button id="downloadBtn" type="button" disabled>下载高分辨率带色号图纸</button>
+          </section>
 
-        <label class="control-group">
-          <span>像素块大小：<strong id="pixelSizeValue">12</strong> px</span>
-          <input id="pixelSize" type="range" min="2" max="60" step="1" value="12" />
-        </label>
+          <section class="panel">
+            <h2>像素大小调整</h2>
+            <label class="control-group">
+              <span>像素块大小：<strong id="pixelSizeValue">12</strong> px</span>
+              <input id="pixelSize" type="range" min="2" max="60" step="1" value="12" />
+            </label>
+          </section>
 
-        <div class="button-row">
-          <button id="downloadBtn" type="button" disabled>下载像素画</button>
-        </div>
-      </section>
+          <section class="panel">
+            <h2>上色工具</h2>
+            <p class="hint">先点击色号，再点击中间像素块进行改色。</p>
+            <div id="selectedColorPreview" class="selected-color">未选择色号</div>
 
-      <section class="canvas-wrapper">
-        <canvas id="canvas" aria-label="像素画预览画布"></canvas>
-      </section>
+            <h3>已有区</h3>
+            <div id="usedPalette" class="palette-grid"></div>
+
+            <h3>全部区（按分区）</h3>
+            <div id="allPalette" class="all-palette-groups"></div>
+          </section>
+        </aside>
+
+        <section class="workspace">
+          <div class="canvas-wrapper">
+            <canvas id="canvas" aria-label="像素画预览画布"></canvas>
+          </div>
+
+          <section class="used-list panel">
+            <h2>当前像素图使用到的色号</h2>
+            <div id="usedCodeList" class="used-code-list"></div>
+          </section>
+        </section>
+
+        <aside class="rightbar">
+          <section class="panel">
+            <h2>右侧工具栏</h2>
+            <label class="control-group">
+              <span>预览显示色号</span>
+              <input id="showCodeOnCanvas" type="checkbox" checked />
+            </label>
+          </section>
+
+          <section class="panel">
+            <h2>合并杂色</h2>
+            <label class="control-group">
+              <span>保留颜色数：<strong id="mergeCountValue">24</strong></span>
+              <input id="mergeCount" type="range" min="2" max="64" step="1" value="24" />
+            </label>
+            <button id="mergeColorsBtn" type="button" disabled>执行合并</button>
+          </section>
+        </aside>
+      </div>
     </main>
 
     <script src="script.js"></script>
