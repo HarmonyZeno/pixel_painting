@@ -8,28 +8,54 @@
   </head>
   <body>
     <main class="app">
-      <h1>图片转像素画</h1>
-      <p class="subtitle">上传图片并调节像素块大小，实时生成像素画效果。</p>
+      <header class="app-header">
+        <h1>图片转像素画</h1>
+        <p class="subtitle">像素块保持正方形，颜色映射到 Mard 标准色卡（221 色）。</p>
+      </header>
 
-      <section class="controls">
-        <label class="control-group">
-          <span>选择图片</span>
-          <input id="imageInput" type="file" accept="image/*" />
-        </label>
+      <div class="layout">
+        <aside class="sidebar">
+          <section class="panel">
+            <h2>图片与导出</h2>
+            <label class="control-group">
+              <span>选择图片</span>
+              <input id="imageInput" type="file" accept="image/*" />
+            </label>
+            <button id="downloadBtn" type="button" disabled>下载像素画</button>
+          </section>
 
-        <label class="control-group">
-          <span>像素块大小：<strong id="pixelSizeValue">12</strong> px</span>
-          <input id="pixelSize" type="range" min="2" max="60" step="1" value="12" />
-        </label>
+          <section class="panel">
+            <h2>像素大小调整</h2>
+            <label class="control-group">
+              <span>像素块大小：<strong id="pixelSizeValue">12</strong> px</span>
+              <input id="pixelSize" type="range" min="2" max="60" step="1" value="12" />
+            </label>
+          </section>
 
-        <div class="button-row">
-          <button id="downloadBtn" type="button" disabled>下载像素画</button>
-        </div>
-      </section>
+          <section class="panel">
+            <h2>上色工具</h2>
+            <p class="hint">先点击色号，再点击右侧像素块进行改色。</p>
+            <div id="selectedColorPreview" class="selected-color">未选择色号</div>
 
-      <section class="canvas-wrapper">
-        <canvas id="canvas" aria-label="像素画预览画布"></canvas>
-      </section>
+            <h3>已有区</h3>
+            <div id="usedPalette" class="palette-grid"></div>
+
+            <h3>全部区（按分区）</h3>
+            <div id="allPalette" class="all-palette-groups"></div>
+          </section>
+        </aside>
+
+        <section class="workspace">
+          <div class="canvas-wrapper">
+            <canvas id="canvas" aria-label="像素画预览画布"></canvas>
+          </div>
+
+          <section class="used-list panel">
+            <h2>当前像素图使用到的色号</h2>
+            <div id="usedCodeList" class="used-code-list"></div>
+          </section>
+        </section>
+      </div>
     </main>
 
     <script src="script.js"></script>
