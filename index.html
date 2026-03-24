@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图片转像素画工具</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>图片转像素画</h1>
+      <p class="subtitle">上传图片并调节像素块大小，实时生成像素画效果。</p>
+
+      <section class="controls">
+        <label class="control-group">
+          <span>选择图片</span>
+          <input id="imageInput" type="file" accept="image/*" />
+        </label>
+
+        <label class="control-group">
+          <span>像素块大小：<strong id="pixelSizeValue">12</strong> px</span>
+          <input id="pixelSize" type="range" min="2" max="60" step="1" value="12" />
+        </label>
+
+        <div class="button-row">
+          <button id="downloadBtn" type="button" disabled>下载像素画</button>
+        </div>
+      </section>
+
+      <section class="canvas-wrapper">
+        <canvas id="canvas" aria-label="像素画预览画布"></canvas>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
