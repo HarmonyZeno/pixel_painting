@@ -1,15 +1,11 @@
 :root {
   --bg: #0f172a;
-  --panel: #111827;
   --text: #f8fafc;
   --muted: #cbd5e1;
   --accent: #38bdf8;
+  --border: rgb(148 163 184 / 35%);
 }
-
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
   margin: 0;
   min-height: 100vh;
@@ -17,91 +13,103 @@ body {
   background: linear-gradient(165deg, #020617, var(--bg));
   color: var(--text);
 }
-
 .app {
-  width: min(960px, 92vw);
-  margin: 32px auto;
-  padding: 24px;
-  background: rgb(17 24 39 / 86%);
-  border: 1px solid rgb(56 189 248 / 30%);
+  width: min(1600px, 96vw);
+  margin: 20px auto;
+  padding: 18px;
   border-radius: 16px;
-  backdrop-filter: blur(8px);
+  border: 1px solid rgb(56 189 248 / 30%);
+  background: rgb(17 24 39 / 88%);
 }
-
-h1 {
-  margin: 0;
-  font-size: 2rem;
-}
-
-.subtitle {
-  margin: 10px 0 0;
-  color: var(--muted);
-}
-
-.controls {
-  margin-top: 20px;
+.app-header h1 { margin: 0; }
+.subtitle { margin: 8px 0 0; color: var(--muted); }
+.layout {
+  margin-top: 16px;
   display: grid;
-  gap: 12px;
+  grid-template-columns: 320px minmax(0, 1fr) 280px;
+  gap: 14px;
 }
-
-.control-group {
-  display: grid;
-  gap: 8px;
+.sidebar, .rightbar { display: grid; gap: 12px; align-content: start; }
+.panel {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgb(2 6 23 / 62%);
+  padding: 12px;
 }
-
-input[type='file'],
-input[type='range'],
-button {
-  width: 100%;
-}
-
+.panel h2, .panel h3 { margin: 0 0 8px; }
+.panel h3 { color: var(--muted); font-size: 0.95rem; margin-top: 12px; }
+.control-group { display: grid; gap: 8px; }
+input[type='file'], input[type='range'], button { width: 100%; }
 input[type='file'] {
   padding: 10px;
-  border: 1px solid rgb(148 163 184 / 40%);
+  border: 1px solid var(--border);
   border-radius: 10px;
   color: var(--muted);
-  background: rgb(15 23 42 / 65%);
+  background: rgb(15 23 42 / 70%);
 }
-
-input[type='range'] {
-  accent-color: var(--accent);
-}
-
-.button-row {
-  display: flex;
-  justify-content: flex-start;
-}
-
+input[type='range'] { accent-color: var(--accent); }
+input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--accent); }
 button {
-  max-width: 240px;
   border: 0;
   border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 1rem;
+  padding: 10px 12px;
   font-weight: 600;
   background: var(--accent);
   color: #0c4a6e;
   cursor: pointer;
 }
-
-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+.hint { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
+.selected-color {
+  min-height: 38px;
+  padding: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--muted);
 }
-
+.palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
+.all-palette-groups { max-height: 320px; overflow: auto; display: grid; gap: 10px; padding-right: 4px; }
+.series-group h4 { margin: 0 0 6px; font-size: 0.84rem; color: var(--muted); }
+.swatch {
+  border: 2px solid rgb(255 255 255 / 25%);
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 4px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #111827;
+  text-shadow: 0 0 3px rgb(255 255 255 / 70%);
+}
+.swatch.is-active { outline: 2px solid #fff; outline-offset: 1px; }
 .canvas-wrapper {
-  margin-top: 18px;
-  padding: 14px;
+  min-height: 420px;
+  padding: 10px;
   border-radius: 12px;
+  border: 1px solid var(--border);
   background: rgb(2 6 23 / 65%);
-  border: 1px solid rgb(148 163 184 / 25%);
+  overflow: auto;
 }
-
 canvas {
-  width: 100%;
-  max-height: 70vh;
+  display: block;
+  max-width: 100%;
+  height: auto;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   background: #000;
-  border-radius: 8px;
+  border-radius: 6px;
+}
+.used-list { margin-top: 12px; }
+.used-code-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.code-tag {
+  border: 2px solid #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  background: rgb(15 23 42 / 70%);
+}
+@media (max-width: 1200px) {
+  .layout { grid-template-columns: 1fr; }
 }
