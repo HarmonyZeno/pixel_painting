@@ -21,7 +21,7 @@
               <span>选择图片</span>
               <input id="imageInput" type="file" accept="image/*" />
             </label>
-            <button id="downloadBtn" type="button" disabled>下载像素画</button>
+            <button id="downloadBtn" type="button" disabled>下载高分辨率带色号图纸</button>
           </section>
 
           <section class="panel">
@@ -34,7 +34,7 @@
 
           <section class="panel">
             <h2>上色工具</h2>
-            <p class="hint">先点击色号，再点击右侧像素块进行改色。</p>
+            <p class="hint">先点击色号，再点击中间像素块进行改色。</p>
             <div id="selectedColorPreview" class="selected-color">未选择色号</div>
 
             <h3>已有区</h3>
@@ -55,6 +55,25 @@
             <div id="usedCodeList" class="used-code-list"></div>
           </section>
         </section>
+
+        <aside class="rightbar">
+          <section class="panel">
+            <h2>右侧工具栏</h2>
+            <label class="control-group">
+              <span>预览显示色号</span>
+              <input id="showCodeOnCanvas" type="checkbox" checked />
+            </label>
+          </section>
+
+          <section class="panel">
+            <h2>合并杂色</h2>
+            <label class="control-group">
+              <span>保留颜色数：<strong id="mergeCountValue">24</strong></span>
+              <input id="mergeCount" type="range" min="2" max="64" step="1" value="24" />
+            </label>
+            <button id="mergeColorsBtn" type="button" disabled>执行合并</button>
+          </section>
+        </aside>
       </div>
     </main>
 

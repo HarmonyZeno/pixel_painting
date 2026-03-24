@@ -7,6 +7,10 @@ const usedPaletteContainer = document.getElementById('usedPalette');
 const allPaletteContainer = document.getElementById('allPalette');
 const selectedColorPreview = document.getElementById('selectedColorPreview');
 const usedCodeList = document.getElementById('usedCodeList');
+const showCodeOnCanvasInput = document.getElementById('showCodeOnCanvas');
+const mergeCountInput = document.getElementById('mergeCount');
+const mergeCountValue = document.getElementById('mergeCountValue');
+const mergeColorsBtn = document.getElementById('mergeColorsBtn');
 
 const ctx = canvas.getContext('2d');
 const sampledCanvas = document.createElement('canvas');
@@ -34,15 +38,8 @@ const MARD_SERIES_HEX = {
 };
 
 const MARD_COLORS = Object.entries(MARD_SERIES_HEX).flatMap(([series, hexes]) =>
-  hexes.map((hex, index) => ({
-    code: `${series}${index + 1}`,
-    hex,
-    name: `Mard_${series}${index + 1}`,
-    series,
-    rgb: hexToRgb(hex),
-  }))
+  hexes.map((hex, index) => ({ code: `${series}${index + 1}`, hex, name: `Mard_${series}${index + 1}`, series, rgb: hexToRgb(hex) }))
 );
-
 const colorByCode = Object.fromEntries(MARD_COLORS.map((item) => [item.code, item]));
 
 const state = {
@@ -52,75 +49,71 @@ const state = {
   rows: 0,
   mappedGrid: [],
   selectedColorCode: null,
+  showCodeOnCanvas: showCodeOnCanvasInput.checked,
 };
 
 function colorDistance(a, b) {
   return (a.r - b.r) ** 2 + (a.g - b.g) ** 2 + (a.b - b.b) ** 2;
 }
 
-function getNearestColor(r, g, b) {
+function getNearestColor(r, g, b, palette = MARD_COLORS) {
   const input = { r, g, b };
-  let best = MARD_COLORS[0];
+  let best = palette[0];
   let bestDistance = Number.POSITIVE_INFINITY;
-
-  for (const color of MARD_COLORS) {
+  for (const color of palette) {
     const dist = colorDistance(input, color.rgb);
     if (dist < bestDistance) {
       bestDistance = dist;
       best = color;
     }
   }
-
   return best;
 }
 
 function rebuildPixelGridFromImage() {
   if (!state.image) return;
-
   const maxDimension = 900;
   const scale = Math.min(maxDimension / state.image.width, maxDimension / state.image.height, 1);
   const displayWidth = Math.max(1, Math.round(state.image.width * scale));
   const displayHeight = Math.max(1, Math.round(state.image.height * scale));
-
   state.cols = Math.max(1, Math.round(displayWidth / state.pixelSize));
   state.rows = Math.max(1, Math.round(displayHeight / state.pixelSize));
 
   sampledCanvas.width = state.cols;
   sampledCanvas.height = state.rows;
-  sampledCtx.imageSmoothingEnabled = true;
   sampledCtx.clearRect(0, 0, state.cols, state.rows);
   sampledCtx.drawImage(state.image, 0, 0, state.cols, state.rows);
 
   const sampledData = sampledCtx.getImageData(0, 0, state.cols, state.rows).data;
-  const mappedGrid = [];
-
+  state.mappedGrid = [];
   for (let y = 0; y < state.rows; y += 1) {
     const row = [];
     for (let x = 0; x < state.cols; x += 1) {
-      const pixelIndex = (y * state.cols + x) * 4;
-      const nearest = getNearestColor(sampledData[pixelIndex], sampledData[pixelIndex + 1], sampledData[pixelIndex + 2]);
-      row.push(nearest.code);
+      const i = (y * state.cols + x) * 4;
+      row.push(getNearestColor(sampledData[i], sampledData[i + 1], sampledData[i + 2]).code);
     }
-    mappedGrid.push(row);
+    state.mappedGrid.push(row);
   }
-
-  state.mappedGrid = mappedGrid;
 }
 
 function drawMappedGrid() {
   if (!state.mappedGrid.length) return;
-
   canvas.width = state.cols * state.pixelSize;
   canvas.height = state.rows * state.pixelSize;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (let y = 0; y < state.rows; y += 1) {
     for (let x = 0; x < state.cols; x += 1) {
-      const code = state.mappedGrid[y][x];
-      const color = colorByCode[code];
-      if (!color) continue;
+      const color = colorByCode[state.mappedGrid[y][x]];
       ctx.fillStyle = color.hex;
       ctx.fillRect(x * state.pixelSize, y * state.pixelSize, state.pixelSize, state.pixelSize);
+      if (state.showCodeOnCanvas && state.pixelSize >= 10) {
+        ctx.fillStyle = '#111827';
+        ctx.font = `${Math.max(8, Math.floor(state.pixelSize * 0.33))}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(color.code, x * state.pixelSize + state.pixelSize / 2, y * state.pixelSize + state.pixelSize / 2);
+      }
     }
   }
 }
@@ -128,7 +121,7 @@ function drawMappedGrid() {
 function getUsedColorCodes() {
   const used = new Set();
   state.mappedGrid.forEach((row) => row.forEach((code) => used.add(code)));
-  return Array.from(used);
+  return [...used];
 }
 
 function createSwatch(color) {
@@ -146,61 +139,105 @@ function createSwatch(color) {
 }
 
 function refreshSelection() {
-  document.querySelectorAll('.swatch').forEach((swatch) => {
-    swatch.classList.toggle('is-active', swatch.dataset.code === state.selectedColorCode);
-  });
-
+  document.querySelectorAll('.swatch').forEach((swatch) => swatch.classList.toggle('is-active', swatch.dataset.code === state.selectedColorCode));
   if (!state.selectedColorCode) {
     selectedColorPreview.textContent = '未选择色号';
     selectedColorPreview.style.background = 'transparent';
-    selectedColorPreview.style.color = '';
     return;
   }
-
   const selected = colorByCode[state.selectedColorCode];
-  selectedColorPreview.textContent = `${selected.code} · ${selected.hex} · ${selected.name}`;
+  selectedColorPreview.textContent = `${selected.code} · ${selected.hex}`;
   selectedColorPreview.style.background = selected.hex;
   selectedColorPreview.style.color = '#111827';
 }
 
 function renderUsedPaletteAndList() {
   const usedCodes = getUsedColorCodes();
-  const usedColors = MARD_COLORS.filter((color) => usedCodes.includes(color.code));
-
   usedPaletteContainer.innerHTML = '';
   usedCodeList.innerHTML = '';
 
-  usedColors.forEach((color) => {
+  MARD_COLORS.filter((color) => usedCodes.includes(color.code)).forEach((color) => {
     usedPaletteContainer.appendChild(createSwatch(color));
-
     const tag = document.createElement('span');
     tag.className = 'code-tag';
     tag.style.borderColor = color.hex;
     tag.textContent = `${color.code} (${color.hex})`;
     usedCodeList.appendChild(tag);
   });
+
+  mergeColorsBtn.disabled = !state.mappedGrid.length;
+  mergeCountInput.max = String(Math.max(2, usedCodes.length));
+  if (Number(mergeCountInput.value) > usedCodes.length) {
+    mergeCountInput.value = String(usedCodes.length);
+    mergeCountValue.textContent = mergeCountInput.value;
+  }
 }
 
 function renderAllPalette() {
   allPaletteContainer.innerHTML = '';
-  Object.entries(MARD_SERIES_HEX).forEach(([series]) => {
+  Object.keys(MARD_SERIES_HEX).forEach((series) => {
     const section = document.createElement('section');
     section.className = 'series-group';
-
-    const title = document.createElement('h4');
-    title.textContent = `${series} 区`;
-    section.appendChild(title);
-
+    section.innerHTML = `<h4>${series} 区</h4>`;
     const grid = document.createElement('div');
     grid.className = 'palette-grid';
-
-    MARD_COLORS.filter((color) => color.series === series).forEach((color) => {
-      grid.appendChild(createSwatch(color));
-    });
-
+    MARD_COLORS.filter((color) => color.series === series).forEach((color) => grid.appendChild(createSwatch(color)));
     section.appendChild(grid);
     allPaletteContainer.appendChild(section);
   });
+}
+
+function mergeNoiseColors(targetCount) {
+  const counts = new Map();
+  state.mappedGrid.forEach((row) => row.forEach((code) => counts.set(code, (counts.get(code) || 0) + 1)));
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  if (sorted.length <= targetCount) return;
+
+  const keepCodes = sorted.slice(0, targetCount).map(([code]) => code);
+  const keepColors = keepCodes.map((code) => colorByCode[code]);
+
+  for (let y = 0; y < state.rows; y += 1) {
+    for (let x = 0; x < state.cols; x += 1) {
+      const code = state.mappedGrid[y][x];
+      if (keepCodes.includes(code)) continue;
+      const nearest = getNearestColor(colorByCode[code].rgb.r, colorByCode[code].rgb.g, colorByCode[code].rgb.b, keepColors);
+      state.mappedGrid[y][x] = nearest.code;
+    }
+  }
+}
+
+function exportPatternWithCodes() {
+  const cellSize = Math.max(48, state.pixelSize * 4);
+  const padding = 40;
+  const out = document.createElement('canvas');
+  out.width = state.cols * cellSize + padding * 2;
+  out.height = state.rows * cellSize + padding * 2;
+  const outCtx = out.getContext('2d');
+
+  outCtx.fillStyle = '#ffffff';
+  outCtx.fillRect(0, 0, out.width, out.height);
+  outCtx.textAlign = 'center';
+  outCtx.textBaseline = 'middle';
+
+  for (let y = 0; y < state.rows; y += 1) {
+    for (let x = 0; x < state.cols; x += 1) {
+      const color = colorByCode[state.mappedGrid[y][x]];
+      const sx = padding + x * cellSize;
+      const sy = padding + y * cellSize;
+      outCtx.fillStyle = color.hex;
+      outCtx.fillRect(sx, sy, cellSize, cellSize);
+      outCtx.strokeStyle = '#475569';
+      outCtx.strokeRect(sx, sy, cellSize, cellSize);
+      outCtx.fillStyle = '#111827';
+      outCtx.font = `${Math.floor(cellSize * 0.25)}px sans-serif`;
+      outCtx.fillText(color.code, sx + cellSize / 2, sy + cellSize / 2);
+    }
+  }
+
+  const link = document.createElement('a');
+  link.download = `pixel-pattern-${Date.now()}.png`;
+  link.href = out.toDataURL('image/png');
+  link.click();
 }
 
 function renderAll() {
@@ -212,7 +249,6 @@ function renderAll() {
 imageInput.addEventListener('change', (event) => {
   const [file] = event.target.files ?? [];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = () => {
     const image = new Image();
@@ -221,17 +257,16 @@ imageInput.addEventListener('change', (event) => {
       rebuildPixelGridFromImage();
       renderAll();
       downloadBtn.disabled = false;
+      mergeColorsBtn.disabled = false;
     };
     image.src = reader.result;
   };
-
   reader.readAsDataURL(file);
 });
 
 pixelSizeInput.addEventListener('input', (event) => {
   state.pixelSize = Number(event.target.value);
   pixelSizeValue.textContent = String(state.pixelSize);
-
   if (!state.image) return;
   rebuildPixelGridFromImage();
   renderAll();
@@ -239,25 +274,34 @@ pixelSizeInput.addEventListener('input', (event) => {
 
 canvas.addEventListener('click', (event) => {
   if (!state.selectedColorCode || !state.mappedGrid.length) return;
-
   const rect = canvas.getBoundingClientRect();
   const clickX = ((event.clientX - rect.left) / rect.width) * canvas.width;
   const clickY = ((event.clientY - rect.top) / rect.height) * canvas.height;
   const gridX = Math.floor(clickX / state.pixelSize);
   const gridY = Math.floor(clickY / state.pixelSize);
-
   if (gridX < 0 || gridY < 0 || gridX >= state.cols || gridY >= state.rows) return;
-
   state.mappedGrid[gridY][gridX] = state.selectedColorCode;
+  renderAll();
+});
+
+showCodeOnCanvasInput.addEventListener('change', (event) => {
+  state.showCodeOnCanvas = event.target.checked;
+  drawMappedGrid();
+});
+
+mergeCountInput.addEventListener('input', (event) => {
+  mergeCountValue.textContent = event.target.value;
+});
+
+mergeColorsBtn.addEventListener('click', () => {
+  if (!state.mappedGrid.length) return;
+  mergeNoiseColors(Number(mergeCountInput.value));
   renderAll();
 });
 
 downloadBtn.addEventListener('click', () => {
   if (!state.mappedGrid.length) return;
-  const link = document.createElement('a');
-  link.download = `pixel-art-${Date.now()}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+  exportPatternWithCodes();
 });
 
 renderAllPalette();
